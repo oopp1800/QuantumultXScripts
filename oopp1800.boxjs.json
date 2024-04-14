@@ -1,0 +1,96 @@
+{
+  "id": "oopp1800.app.sub",
+  "name": "oopp1800 脚本订阅",
+  "description": "@oopp1800",
+  "author": "@oopp1800",
+  "icon": "https://avatars.githubusercontent.com/u/12545349",
+  "repo": "https://github.com/oopp1800",
+  "apps": [
+    {
+      "id": "qidian",
+      "name": "起点读书",
+      "keys": [
+        "qd_session",
+        "qd_session_2",
+        "qd_taskId",
+        "qd_taskId_2",
+        "qd_taskId_last_date",
+        "qd_taskId_2_last_date",
+        "qd_timeout"
+      ],
+      "desc": "起点读书自动签到（需先人工看一个广告）",
+      "settings": [
+        {
+          "id": "qd_session",
+          "name": "qd_session",
+          "val": "",
+          "type": "text",
+          "placeholder": "",
+          "desc": ""
+        },
+        {
+          "id": "qd_session_2",
+          "name": "qd_session_2",
+          "val": "",
+          "type": "text",
+          "placeholder": "",
+          "desc": ""
+        },
+        {
+          "id": "qd_taskId",
+          "name": "qd_taskId",
+          "val": "",
+          "type": "text",
+          "placeholder": "",
+          "desc": ""
+        },
+        {
+          "id": "qd_taskId_2",
+          "name": "qd_taskId_2",
+          "val": "",
+          "type": "text",
+          "placeholder": "",
+          "desc": ""
+        },
+        {
+          "id": "qd_taskId_last_date",
+          "name": "qd_taskId_last_date",
+          "val": "",
+          "type": "text",
+          "placeholder": "",
+          "desc": ""
+        },
+        {
+          "id": "qd_taskId_2_last_date",
+          "name": "qd_taskId_2_last_date",
+          "val": "",
+          "type": "text",
+          "placeholder": "",
+          "desc": ""
+        },
+        {
+          "id": "qd_timeout",
+          "name": "间隔时间",
+          "val": 20,
+          "type": "number",
+          "placeholder": "",
+          "desc": "默认间隔20s"
+        }
+      ],
+      "script": "https://raw.githubusercontent.com/oopp1800/QuantumultXScripts/main/Scripts/myScripts/qidian.js",
+      "onInstall": {
+        "title": "安装确认",
+        "message": "本订阅包含重写资源，是否需要自动安装？",
+        "install": {
+          "QuanX": "quantumult-x:///add-resource?remote-resource=%7B%22rewrite_remote%22%3A%5B%22https%3A%2F%2Fraw.githubusercontent.com%2Foopp1800%2FQuantumultXScripts%2Fmain%2FScripts%2FmyScripts%2Fqidian%2Fqidian.conf%2Ctag%3D%E8%B5%B7%E7%82%B9%E4%BB%BB%E5%8A%A1%E4%BF%A1%E6%81%AF%E8%8E%B7%E5%8F%96%22%5D%7D"
+        }
+      },
+      "author": "@oopp1800",
+      "repo": "https://github.com/oopp1800",
+      "icons": [
+        "https://raw.githubusercontent.com/chxm1023/Script_X/main/icon/qidian.png",
+        "https://raw.githubusercontent.com/chxm1023/Script_X/main/icon/qidian.png"
+      ]
+    }
+  ]
+}

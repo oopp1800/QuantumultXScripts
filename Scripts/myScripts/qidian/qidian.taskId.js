@@ -10,38 +10,52 @@ hostname = h5.if.qidian.com
 
 */
 const $ = new Env("起点读书");
+$.taskId_last_date = $.getdata("qd_taskId_last_date");
+$.taskId_2_last_date = $.getdata("qd_taskId_2_last_date");
 
 var obj = JSON.parse($response.body);
 var a = obj.Data.VideoBenefitModule.TaskList[0].TaskId;
 var b = obj.Data.VideoBenefitModule.TaskList[1].TaskId;
 var c;
 
-for (var i = 0; i < obj.Data.CountdownBenefitModule.TaskList.length; i++) {
-  if (
-    obj.Data.CountdownBenefitModule.TaskList[i].Title ==
-    "额外看3次小视频得奖励"
-  ) {
-    c = obj.Data.CountdownBenefitModule.TaskList[i].TaskId;
-    $.setdata(c, "qd_taskId_2");
-    break;
-  } else {
-    continue;
+const now = new Date();
+const year = now.getFullYear();
+const month = ('0' + (now.getMonth() + 1)).slice(-2);
+const day = ('0' + now.getDate()).slice(-2);
+const formattedDate = year + month + day;
+
+const task1LoggedToday = $.taskId_last_date === formattedDate;
+const task2LoggedToday = $.taskId_2_last_date === formattedDate;
+
+if (!task2LoggedToday) {
+  for (var i = 0; i < obj.Data.CountdownBenefitModule.TaskList.length; i++) {
+    if (
+      obj.Data.CountdownBenefitModule.TaskList[i].Title ==
+      "额外看3次小视频得奖励"
+    ) {
+      c = obj.Data.CountdownBenefitModule.TaskList[i].TaskId;
+      $.setdata(c, "qd_taskId_2");
+      $.log(`taskId_2: ${c}`);
+      break;
+    } else {
+      continue;
+    }
   }
 }
 
-if ((a = b) && c) {
-  $.setdata(a, "qd_taskId");
-  $.log(`🎉任务信息获取成功!`);
-  $.log(`taskId_2: ${a}`);
-  $.log(`taskId_2: ${c}`);
-  $.msg($.name, `🎉任务信息获取成功!`);
-  $.done();
-} else {
-  $.log("🔴任务信息获取失败!");
-  $.log($response.body);
-  $.msg($.name, "🔴任务信息获取失败!");
-  $.done();
+if (!task1LoggedToday) {
+  if ((a == b) && c) {
+    $.setdata(a, "qd_taskId");
+    $.log(`🎉任务信息获取成功!`);
+    $.log(`taskId: ${a}`);
+    $.msg($.name, `🎉任务信息获取成功!`);
+  } else {
+    $.log("🔴任务信息获取失败!");
+    $.log($response.body);
+    $.msg($.name, "🔴任务信息获取失败!");
+  }
 }
+$.done();
 
 function Env(t, s) {
   class e {

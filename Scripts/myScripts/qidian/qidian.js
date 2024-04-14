@@ -58,12 +58,12 @@ if (!$.session_2) {
 (async () => {
   for (var i = 0; i < 8; i++) {
     $.log(`🟡任务1执行次数: ${i + 1}次`);
-    await task($.session);
+    await task($.session, () => $.setdata("qd_taskId_last_date", ""));
     await $.wait($.timeout * 1000);
   }
   for (var j = 0; j < 3; j++) {
     $.log(`🟡任务2执行次数: ${j + 1}次`);
-    await task($.session_2);
+    await task($.session_2, () => $.setdata("qd_taskId_2_last_date", ""));
     await $.wait($.timeout * 1000);
   }
 })()
@@ -73,7 +73,7 @@ if (!$.session_2) {
     $.done();
   });
 
-async function task(session) {
+async function task(session, errorCallback) {
   let options = JSON.parse(session);
 
   return $.http.post(options).then((resp) => {
@@ -84,6 +84,7 @@ async function task(session) {
     } else {
       $.log("🔴失败!");
       $.log(resp.body);
+      errorCallback();
     }
   });
 }

@@ -11,7 +11,9 @@ hostname = h5.if.qidian.com
 */
 const $ = new Env("起点读书");
 $.taskId = $.getdata("qd_taskId");
+$.taskId_last_date = $.getdata("qd_taskId_last_date");
 $.taskId_2 = $.getdata("qd_taskId_2");
+$.taskId_2_last_date = $.getdata("qd_taskId_2_last_date");
 
 !(async () => {
   const session = {};
@@ -19,20 +21,30 @@ $.taskId_2 = $.getdata("qd_taskId_2");
   session.body = $request.body;
   session.headers = $request.headers;
   $.log(JSON.stringify(session));
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = ('0' + (now.getMonth() + 1)).slice(-2);
+  const day = ('0' + now.getDate()).slice(-2);
+  const formattedDate = year + month + day;
 
-  if (session.body.indexOf($.taskId) != -1) {
+  const task1LoggedToday = $.taskId_last_date  === formattedDate;
+  const task2LoggedToday = $.taskId_2_last_date === formattedDate;
+
+  if (!task1LoggedToday && session.body.indexOf($.taskId) != -1) {
     if ($.setdata(JSON.stringify(session), "qd_session")) {
       $.log("🎉广告1信息获取成功!");
       $.msg($.name, "🎉广告1信息获取成功!");
+      $.setdata(formattedDate, "qd_taskId_last_date");
     } else {
       $.log("🔴广告1信息获取失败!");
       $.log(session);
       $.msg($.name, "🔴广告1信息获取失败!");
     }
-  } else if (session.body.indexOf($.taskId_2) != -1) {
+  } else if (!task2LoggedToday && session.body.indexOf($.taskId_2) != -1) {
     if ($.setdata(JSON.stringify(session), "qd_session_2")) {
       $.log("🎉广告2信息获取成功!");
       $.msg($.name, "🎉广告2信息获取成功!");
+      $.setdata(formattedDate, "qd_taskId_2_last_date");
     } else {
       $.log("🔴广告2信息获取失败!");
       $.log(session);
