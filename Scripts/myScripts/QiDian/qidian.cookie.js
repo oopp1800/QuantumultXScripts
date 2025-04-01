@@ -20,33 +20,67 @@ if (!tasks || $.getdata("qd_tasks_last_date") !== $.time('yyyy-MM-dd')) {
 }
 
 const sessionLastDate = $.time('yyyy-MM-dd');
+const timeout = $.getdata("qd_timeout") || 20;
 
-!(async () => {
-  const session = {
-    url: $request.url,
-    body: $request.body,
-    headers: $request.headers
-  };
-  $.info("session for finishWatch page: " + JSON.stringify(session));
-  const taskId = session.body.split("&").find(item => item.indexOf("taskId") != -1).split("=")[1];
-  const matchedTasks = tasks.filter(task => task.taskId === taskId);
-  if (matchedTasks.length === 0) {
-    $.warn("无对应 taskId！");
-    $.warn("请重新获取 taskId 信息");
-    $.msg($.name, "无对应 taskId！", "请重新获取 taskId 信息");
-    $.done();
-  }
-  matchedTasks.forEach(task => {
-    task.session = session;
-    task.sessionLastDate = sessionLastDate;
-  });
+const session = {
+  url: $request.url,
+  body: $request.body,
+  headers: $request.headers
+};
+$.info("session for finishWatch page: " + JSON.stringify(session));
+const taskId = session.body.split("&").find(item => item.indexOf("taskId") != -1).split("=")[1];
+const matchedTasks = tasks.filter(task => task.taskId === taskId);
+if (matchedTasks.length === 0) {
+  $.warn("无对应 taskId！");
+  $.warn("请重新获取 taskId 信息");
+  $.msg($.name, "无对应 taskId！", "请重新获取 taskId 信息");
+  return $.done();
+}
+const task = matchedTasks[0];
+task.session = session;
+task.sessionLastDate = sessionLastDate;
+task.taskRemainTimes--;
+$.msg($.name, "已获取广告信息！", `开始执行 ${task.taskType} task，还需 ${task.taskRemainTimes} 次!`);
+
+runTask(task, Number.parseInt(timeout)).then(() => {
+  $.msg($.name, "任务执行成功！");
+}).catch(error => {
+  $.error(`task 执行错误！`, error);
+  $.msg($.name, `${task.taskType} 任务执行错误！`);
+}).finally(() => {
   $.info("tasks updated after finishWatch:", JSON.stringify(tasks));
   $.setjson(tasks, "qd_tasks");
-  $.msg($.name, "🎉广告信息获取成功!");
   $.done();
-})()
-  .catch((e) => $.logErr(e))
-  .finally(() => $.done());
+});
+
+function runTask(task, timeout) {
+  if (!task || task.taskRemainTimes <= 0 || !task.session) {
+    throw new Error(`task ${task?.taskId + " " || ""}不存在！`);
+  }
+  $.log(`执行 task: ${task.taskType}, timeout: ${timeout}`);
+
+  const taskRemainTimes = task.taskRemainTimes;
+  return Promise.all([...Array(taskRemainTimes).keys()].map(i => {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        $.info(`🟡${task.taskType}任务执行第${i + 1}次`);
+        $.http.post(task.session).then((resp) => {
+          var obj = JSON.parse(resp.body);
+          if (obj.Result == 0) {
+            $.log("🎉成功!");
+            task.taskRemainTimes--;
+            resolve();
+          } else {
+            $.log("🔴失败!");
+            $.log(resp.body);
+            $.setdata("qd_tasks_last_date", "");
+            reject(`任务执行失败！目前task为 ${JSON.stringify(task)}`);
+          }
+        });
+      }, timeout * 1000 * i);
+    })
+  }));
+}
 
 /**
  * Env.js

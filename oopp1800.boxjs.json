@@ -49,11 +49,9 @@
           "desc": "任务执行间隔时间，单位秒，默认间隔20s（防封号）"
         }
       ],
-      "script": "https://raw.githubusercontent.com/oopp1800/QuantumultXScripts/main/Scripts/myScripts/QiDian/qidian.js",
       "author": "@oopp1800",
       "repo": "https://github.com/oopp1800",
       "icons": [
-        "https://raw.githubusercontent.com/chxm1023/Script_X/main/icon/qidian.png",
         "https://raw.githubusercontent.com/chxm1023/Script_X/main/icon/qidian.png"
       ]
     }

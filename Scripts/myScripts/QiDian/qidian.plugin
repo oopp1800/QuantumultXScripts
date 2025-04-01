@@ -1,5 +1,5 @@
 #!name=起点读书
-#!desc=起点读书签到插件，需要每天先手动看一下视频
+#!desc=起点读书签到插件，手动看一个广告后自动观看对应的剩余广告
 #!author=oopp1800
 #!icon= https://raw.githubusercontent.com/chxm1023/Script_X/main/icon/qidian.png
 #!system = iOS
@@ -11,10 +11,9 @@ DOMAIN-SUFFIX,gdt.qq.com,DIRECT
 DOMAIN,otheve.beacon.qq.com,DIRECT
 
 [script]
-http-response ^https?:\/\/h5\.if\.qidian\.com\/argus\/api\/v1\/video\/adv\/finishWatch script-path=https://raw.githubusercontent.com/oopp1800/QuantumultXScripts/main/Scripts/myScripts/QiDian/qidian.cookie.js,timeout=10,requires-body=true,tag=responseScript,enable=true
 http-response ^https?:\/\/h5\.if\.qidian\.com\/argus\/api\/v1\/video\/adv\/mainPage script-path=https://raw.githubusercontent.com/oopp1800/QuantumultXScripts/main/Scripts/myScripts/QiDian/qidian.taskId.js,timeout=10,requires-body=true,tag=responseScript,enable=true
 http-response ^https?:\/\/h5\.if\.qidian\.com\/argus\/api\/v2\/video\/adv\/mainPage script-path=https://raw.githubusercontent.com/oopp1800/QuantumultXScripts/main/Scripts/myScripts/QiDian/qidian.taskId.js,timeout=10,requires-body=true,tag=responseScript,enable=true
-generic script-path=https://raw.githubusercontent.com/oopp1800/QuantumultXScripts/main/Scripts/myScripts/QiDian/qidian.js,timeout=400,enable=true
+http-response ^https?:\/\/h5\.if\.qidian\.com\/argus\/api\/v1\/video\/adv\/finishWatch script-path=https://raw.githubusercontent.com/oopp1800/QuantumultXScripts/main/Scripts/myScripts/QiDian/qidian.cookie.js,timeout=350,requires-body=true,tag=responseScript,enable=true
 
 [mitm]
 hostname = h5.if.qidian.com
