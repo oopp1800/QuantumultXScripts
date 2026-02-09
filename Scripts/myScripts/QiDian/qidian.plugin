@@ -6,6 +6,7 @@
 #!tag = 签到,起点
 
 [rule]
+DOMAIN-SUFFIX,pgdt.gtimg.cn,DIRECT
 DOMAIN-SUFFIX,adsmind.gdtimg.com,DIRECT
 DOMAIN-SUFFIX,gdt.qq.com,DIRECT
 DOMAIN,otheve.beacon.qq.com,DIRECT

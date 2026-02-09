@@ -40,10 +40,15 @@ if (videoRewardTab && videoRewardTab.TaskList.length > 0) {
   });
 }
 
-$.info("tasks from mainPage: ", JSON.stringify(tasks));
-$.setjson(tasks, "qd_tasks");
-$.setdata($.time('yyyy-MM-dd'), "qd_tasks_last_date");
-$.msg($.name, `🎉taskId获取成功!`);
+if (tasks.length > 0) {
+  $.info("tasks from mainPage: ", JSON.stringify(tasks));
+  $.setjson(tasks, "qd_tasks");
+  $.setdata($.time('yyyy-MM-dd'), "qd_tasks_last_date");
+  $.msg($.name, `🎉taskId获取成功!`);
+} else {
+  $.error("no tasks from mainPage: ", JSON.stringify(tasks));
+  $.msg($.name, `❌taskId获取失败!`);
+}
 $.done();
 
 /**
