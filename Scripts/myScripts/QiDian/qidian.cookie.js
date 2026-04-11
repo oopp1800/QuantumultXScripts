@@ -16,7 +16,7 @@ if (!tasks || $.getdata("qd_tasks_last_date") !== $.time('yyyy-MM-dd')) {
   $.warn(`qd_tasks_last_date=${$.getdata("qd_tasks_last_date")}`);
   $.warn(`tasks=${JSON.stringify(tasks)}`);
   $.msg($.name, "今日未获取 taskId!", "请通过重写获取信息");
-  $.done();
+  return $.done();
 }
 
 const sessionLastDate = $.time('yyyy-MM-dd');
@@ -50,7 +50,7 @@ runTask(task, Number.parseInt(timeout)).then(() => {
 }).finally(() => {
   $.info("tasks updated after finishWatch:", JSON.stringify(tasks));
   $.setjson(tasks, "qd_tasks");
-  $.done();
+  return $.done();
 });
 
 function runTask(task, timeout) {

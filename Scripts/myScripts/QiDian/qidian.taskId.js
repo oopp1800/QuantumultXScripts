@@ -12,7 +12,7 @@ hostname = h5.if.qidian.com
 */
 const $ = new Env("起点读书");
 if ($.getdata("qd_tasks_last_date") === $.time('yyyy-MM-dd')) {
-  $.done();
+  return $.done();
 }
 
 var obj = JSON.parse($response.body);
@@ -49,7 +49,7 @@ if (tasks.length > 0) {
   $.error("no tasks from mainPage: ", JSON.stringify(tasks));
   $.msg($.name, `❌taskId获取失败!`);
 }
-$.done();
+return $.done();
 
 /**
  * Env.js
