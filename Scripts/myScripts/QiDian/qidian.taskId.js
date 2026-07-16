@@ -5,9 +5,11 @@
 [rewrite local]
 https\:\/\/h5\.if\.qidian\.com\/argus\/api\/v1\/video\/adv\/mainPage url script-response-body https://raw.githubusercontent.com/oopp1800/QuantumultXScripts/main/Scripts/myScripts/QiDian/qidian.taskId.js 
 https\:\/\/h5\.if\.qidian\.com\/argus\/api\/v2\/video\/adv\/mainPage url script-response-body https://raw.githubusercontent.com/oopp1800/QuantumultXScripts/main/Scripts/myScripts/QiDian/qidian.taskId.js 
+https\:\/\/magev6\.if\.qidian\.com\/argus\/api\/v1\/video\/adv\/mainPage url script-response-body https://raw.githubusercontent.com/oopp1800/QuantumultXScripts/main/Scripts/myScripts/QiDian/qidian.taskId.js
+https\:\/\/magev6\.if\.qidian\.com\/argus\/api\/v2\/video\/adv\/mainPage url script-response-body https://raw.githubusercontent.com/oopp1800/QuantumultXScripts/main/Scripts/myScripts/QiDian/qidian.taskId.js
 
 [MITM]
-hostname = h5.if.qidian.com
+hostname = h5.if.qidian.com, magev6.if.qidian.com
 
 */
 const $ = new Env("起点读书");
@@ -15,28 +17,47 @@ if ($.getdata("qd_tasks_last_date") === $.time('yyyy-MM-dd')) {
   return $.done();
 }
 
-var obj = JSON.parse($response.body);
+let obj;
+try {
+  obj = JSON.parse($response.body);
+} catch (error) {
+  $.error("mainPage response is not valid JSON", error);
+  $.msg($.name, "taskId获取失败", "任务页响应格式异常");
+  return $.done();
+}
+
+if (obj?.Result !== 0 || !obj?.Data) {
+  $.error("mainPage response failed", JSON.stringify(obj));
+  $.msg($.name, "taskId获取失败", "任务页未返回有效任务信息");
+  return $.done();
+}
+
 const tasks = [];
 const dailyBenefitModule = obj.Data.DailyBenefitModule;
-if (dailyBenefitModule) {
-  const taskId = dailyBenefitModule.TaskList[0].TaskId;
-  const taskRemainTimes = dailyBenefitModule.TaskList.filter(task => !task.isFinished).length;
-  tasks.push({
-    taskType: "daily",
-    taskId,
-    taskRemainTimes
-  });
-}
-const videoRewardTab = obj.Data.VideoRewardTab;
-if (videoRewardTab && videoRewardTab.TaskList.length > 0) {
-  videoRewardTab.TaskList.forEach((task, index) => {
-    const taskId = task.TaskId;
-    const taskRemainTimes = task.Total;
+const dailyTaskList = dailyBenefitModule?.TaskList;
+if (Array.isArray(dailyTaskList) && dailyTaskList.length > 0) {
+  const taskId = dailyTaskList[0].TaskId;
+  const taskRemainTimes = dailyTaskList.filter(task => !(task.IsFinished ?? task.isFinished)).length;
+  if (taskId && taskRemainTimes > 0) {
     tasks.push({
-      taskType: `videoReward${index}`,
+      taskType: "daily",
       taskId,
       taskRemainTimes
     });
+  }
+}
+const videoRewardTab = obj.Data.VideoRewardTab;
+if (Array.isArray(videoRewardTab?.TaskList)) {
+  videoRewardTab.TaskList.forEach((task, index) => {
+    const taskId = task.TaskId;
+    const taskRemainTimes = Math.max(0, Number(task.Total || 0) - Number(task.Process || 0));
+    if (taskId && taskRemainTimes > 0) {
+      tasks.push({
+        taskType: `videoReward${index}`,
+        taskId,
+        taskRemainTimes
+      });
+    }
   });
 }
 

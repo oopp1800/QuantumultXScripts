@@ -3,15 +3,16 @@
 操作步骤: 我 --> 福利中心 --> 手动观看一个广告
 
 [rewrite local]
-https\:\/\/h5\.if\.qidian\.com\/argus\/api\/v1\/video\/adv\/finishWatch url script-request-body https://raw.githubusercontent.com/oopp1800/QuantumultXScripts/main/Scripts/myScripts/QiDian/qidian.cookie.js
+https\:\/\/(?:h5|magev6)\.if\.qidian\.com\/argus\/api\/v1\/video\/adv\/finishWatch url script-request-body https://raw.githubusercontent.com/oopp1800/QuantumultXScripts/main/Scripts/myScripts/QiDian/qidian.cookie.js
 
 [MITM]
-hostname = h5.if.qidian.com
+hostname = h5.if.qidian.com, magev6.if.qidian.com
 
 */
 const $ = new Env("起点读书");
 
-const tasks = $.getjson("qd_tasks");
+const storedTasks = $.getjson("qd_tasks");
+const tasks = Array.isArray(storedTasks) ? storedTasks : null;
 if (!tasks || $.getdata("qd_tasks_last_date") !== $.time('yyyy-MM-dd')) {
   $.warn(`qd_tasks_last_date=${$.getdata("qd_tasks_last_date")}`);
   $.warn(`tasks=${JSON.stringify(tasks)}`);
@@ -19,17 +20,22 @@ if (!tasks || $.getdata("qd_tasks_last_date") !== $.time('yyyy-MM-dd')) {
   return $.done();
 }
 
-const sessionLastDate = $.time('yyyy-MM-dd');
-const timeout = $.getdata("qd_timeout") || 20;
+const timeout = Math.max(1, Number.parseInt($.getdata("qd_timeout"), 10) || 20);
 
 const session = {
   url: $request.url,
   body: $request.body,
   headers: $request.headers
 };
-$.info("session for finishWatch page: " + JSON.stringify(session));
-const taskId = session.body.split("&").find(item => item.indexOf("taskId") != -1).split("=")[1];
-const matchedTasks = tasks.filter(task => task.taskId === taskId);
+const taskId = getFormValue(session.body, "taskId");
+if (!taskId) {
+  $.warn("finishWatch request does not contain taskId");
+  $.msg($.name, "未获取到 taskId", "finishWatch 请求体格式异常");
+  return $.done();
+}
+
+$.info(`finishWatch captured: taskId=${taskId}, url=${session.url}`);
+const matchedTasks = tasks.filter(task => String(task.taskId) === taskId);
 if (matchedTasks.length === 0) {
   $.warn("无对应 taskId！");
   $.warn("请重新获取 taskId 信息");
@@ -38,8 +44,13 @@ if (matchedTasks.length === 0) {
 }
 const task = matchedTasks[0];
 task.session = session;
-task.sessionLastDate = sessionLastDate;
-task.taskRemainTimes--;
+task.taskRemainTimes = Math.max(0, (Number(task.taskRemainTimes) || 0) - 1);
+if (task.taskRemainTimes === 0) {
+  $.setjson(tasks, "qd_tasks");
+  $.msg($.name, "广告任务已完成！", `${task.taskType} 无剩余次数`);
+  return $.done();
+}
+
 $.msg($.name, "已获取广告信息！", `开始执行 ${task.taskType} task，还需 ${task.taskRemainTimes} 次!`);
 
 runTask(task, Number.parseInt(timeout)).then(() => {
@@ -53,33 +64,46 @@ runTask(task, Number.parseInt(timeout)).then(() => {
   return $.done();
 });
 
-function runTask(task, timeout) {
+async function runTask(task, timeout) {
   if (!task || task.taskRemainTimes <= 0 || !task.session) {
     throw new Error(`task ${task?.taskId + " " || ""}不存在！`);
   }
   $.log(`执行 task: ${task.taskType}, timeout: ${timeout}`);
 
-  const taskRemainTimes = task.taskRemainTimes;
-  return Promise.all([...Array(taskRemainTimes).keys()].map(i => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        $.info(`🟡${task.taskType}任务执行第${i + 1}次`);
-        $.http.post(task.session).then((resp) => {
-          var obj = JSON.parse(resp.body);
-          if (obj.Result == 0) {
-            $.log("🎉成功!");
-            task.taskRemainTimes--;
-            resolve();
-          } else {
-            $.log("🔴失败!");
-            $.log(resp.body);
-            $.setdata("qd_tasks_last_date", "");
-            reject(`任务执行失败！目前task为 ${JSON.stringify(task)}`);
-          }
-        });
-      }, timeout * 1000 * i);
-    })
-  }));
+  const taskRemainTimes = Number(task.taskRemainTimes);
+  for (let i = 0; i < taskRemainTimes; i++) {
+    if (i > 0) await $.wait(timeout * 1000);
+
+    $.info(`🟡${task.taskType}任务执行第${i + 1}次`);
+    let resp;
+    let obj;
+    try {
+      resp = await $.http.post(task.session);
+      obj = JSON.parse(resp.body);
+    } catch (error) {
+      $.setdata("qd_tasks_last_date", "");
+      throw new Error(`任务请求或响应解析失败：${error}`);
+    }
+
+    if (obj?.Result !== 0) {
+      $.setdata("qd_tasks_last_date", "");
+      throw new Error(`任务执行失败！响应为 ${resp.body}`);
+    }
+
+    $.log("🎉成功!");
+    task.taskRemainTimes--;
+  }
+}
+
+function getFormValue(body, key) {
+  if (typeof body !== "string") return null;
+  const pair = body.split("&").find(item => item.split("=", 1)[0] === key);
+  if (!pair) return null;
+  try {
+    return decodeURIComponent(pair.slice(key.length + 1).replace(/\+/g, " "));
+  } catch (_) {
+    return null;
+  }
 }
 
 /**
