@@ -3,7 +3,7 @@
 操作步骤: 我 --> 福利中心 --> 手动观看一个广告
 
 [rewrite local]
-https\:\/\/(?:h5|magev6)\.if\.qidian\.com\/argus\/api\/v1\/video\/adv\/finishWatch url script-request-body https://raw.githubusercontent.com/oopp1800/QuantumultXScripts/main/Scripts/myScripts/QiDian/qidian.cookie.js
+https\:\/\/(?:h5|magev6)\.if\.qidian\.com\/argus\/api\/v1\/video\/adv\/finishWatch$ url script-request-body https://raw.githubusercontent.com/oopp1800/QuantumultXScripts/main/Scripts/myScripts/QiDian/qidian.cookie.js
 
 [MITM]
 hostname = h5.if.qidian.com, magev6.if.qidian.com
@@ -44,7 +44,7 @@ if (matchedTasks.length === 0) {
 }
 const task = matchedTasks[0];
 task.session = session;
-task.taskRemainTimes = Math.max(0, (Number(task.taskRemainTimes) || 0) - 1);
+task.taskRemainTimes = Math.max(0, Number(task.taskRemainTimes) || 0);
 if (task.taskRemainTimes === 0) {
   $.setjson(tasks, "qd_tasks");
   $.msg($.name, "广告任务已完成！", `${task.taskType} 无剩余次数`);
